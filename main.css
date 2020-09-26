@@ -1,0 +1,30 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#body_wrapper {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.horizontal_aligner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.perfect_aligner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#main_canvas {
+  border: 1px solid black;
+}
