@@ -18,52 +18,105 @@ let colors = {
     "red": "hsl(0, 100%, 60%)",
     "purple": "hsl(300, 100%, 50%)"
 };
+/*
+Patterns:
 
+   1: (Blue)  2:(Yellow)   3:(Green)       4:(Red)       5:(Purple)             
+                
+    *           * *          * *              *             *
+    *           * *            * *          * * *           *
+    *                                                       *    
+    *                                                     * *
+    
+*/
+let shapes = {
+    1: [
+        [1],
+        [1],
+        [1],
+        [1]
+    ],
+    2: [
+        [1, 1],
+        [1, 1]
+    ],
+    3: [
+        [1,1,0],
+        [0,1,1]
+    ],
+    4:[
+        [0,1,0],
+        [1,1,1]
+    ],
+    5:[
+        [0,1],
+        [0,1],
+        [0,1],
+        [1,1]
+    ]
+}
+let shape_color = {
+    1:"blue",
+    2:"yellow",
+    3:"green",
+    4:"red",
+    5:"purple"
+}
 
-function rotate_array_clockwise(arr){
+//gives random integer between min(inclusive) and max(inclusive)
+function get_random_int(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function rotate_array_clockwise(arr) {
     let local_arr = arr;
     let new_arr = [];
     let old_row_length = local_arr[0].length;
     let old_column_length = local_arr.length;
-    for(let i = 0; i < old_row_length; i += 1){
+    for (let i = 0; i < old_row_length; i += 1) {
         let new_row = [];
-        for(let j = 0; j < old_column_length; j += 1){
+        for (let j = 0; j < old_column_length; j += 1) {
             new_row.push(0);
         }
         new_arr.push(new_row);
     }
-    
-    
-    
-    for(let i = local_arr.length - 1; i >= 0; i -= 1){
+
+
+
+    for (let i = local_arr.length - 1; i >= 0; i -= 1) {
         let row = local_arr[i];
-        for(let j = 0; j < row.length; j += 1){
+        for (let j = 0; j < row.length; j += 1) {
             new_arr[j][local_arr.length - 1 - i] = row[j];
         }
     }
     return new_arr;
-   
-    
+
+
 }
 
 
 function init() {
-    
+
     canvas = document.querySelector("#main_canvas");
     ctx = canvas.getContext("2d");
     field = new game_field(10, 20);
-    
+
     frame_timer = setInterval(function () {
         process_frame()
     }, frame_interval);
     bind_input();
-    field.current_piece = new game_piece(1);
+    
     gravity_timer = setInterval(function () {
         field.current_piece.move_down();
     }, gravity_interval);
-    field.draw();
     
-   
+    field.generate_pieces_queue();
+    field.generate_new_current_piece();
+    field.draw();
+
+
 }
 
 
@@ -114,17 +167,30 @@ class game_field {
         this.gravity = 1;
         this.pieces = [];
         this.current_piece;
-        
-        this.generate_new_current_piece = function(){
-            this.current_piece = new game_piece(1);
+        this.pieces_queue = [];
+        this.generate_pieces_queue = function () {
+            while(this.pieces_queue.length < 3){
+
+            
+                let num = get_random_int(1, 5);
+                while(this.pieces_queue.includes(num) === true){
+                    num = get_random_int(1, 5);
+                }
+                this.pieces_queue.push(num);
+            }
         }
-        this.deactivate_piece = function(){
-            
+        this.generate_new_current_piece = function () {
+            let num = this.pieces_queue[0];
+            this.pieces_queue.splice(0, 1);
+            this.current_piece = new game_piece(num);
+        }
+        this.deactivate_piece = function () {
+
             this.pieces.push(this.current_piece);
-            
-            
+            this.generate_pieces_queue();
+
             this.generate_new_current_piece();
-            
+
         }
         this.draw = function () {
             //draw gridlines
@@ -155,44 +221,85 @@ class game_field {
                 piece.draw();
             })
         }
-        
+
     }
 }
 
-/*
-Patterns:
 
-   1: (Blue)  2:(Yellow)   3:(Green)       4:(Red)       5:(Purple)             
-                
-    *           * *          * *              *             *
-    *           * *            * *          * * *           *
-    *                                                       *    
-    *                                                     * *
-    
-*/
 
 class game_piece {
-    // enter pattern in array format [[0,1,0],[1,1,1]] like that. this is shape 4;
-    constructor(pattern) {
+    // pattern num from shapes dictionary
+    constructor(pattern_num) {
         this.blocks = [];
+        this.pattern = shapes[pattern_num];
+        this.color = colors[shape_color[pattern_num]];
+        this.start_x = 0;
+        this.start_y = 0;
         
+        this.initialize_pattern = function(){
+            if (this.blocks.length != 0 ){
+                let least_x = Infinity;
+                let least_y = Infinity;
+                this.blocks.forEach(block => {
+                    if(block.left < least_x){
+                        least_x = block.left;
+                    }
+                    if(block.top < least_y){
+                        least_y = block.top;
+                    }
+                });
+                this.start_x = least_x;
+                this.start_y = least_y;
+            }
+            this.blocks = [];
+            let start_x = this.start_x;
+            let start_y = this.start_y;
+            for (let i = 0; i < this.pattern.length; i += 1) {
+                
+                let row = this.pattern[i];
+                for (let j = 0; j < row.length; j += 1) {
+                    let data = row[j];
+                    if (data != 1) {
+                        start_x += field.block_width;
+                    } else {
+                        let block = new game_block(this.color, start_x, start_y);
+                        this.blocks.push(block);
+                        start_x += field.block_width;
+                    }
+                    
+                }
+                start_x = this.start_x;
+                start_y += field.block_height;
+            }
+            this.start_y = start_y;
+        }
+        this.rotate_clockwise = function(){
+            let new_pattern = rotate_array_clockwise(this.pattern);
+            
+            
+            this.pattern = new_pattern;
+            
+            this.initialize_pattern();
+            
+        }
+        this.initialize_pattern();
         this.draw = function () {
             this.blocks.forEach(function (block) {
                 block.draw();
             })
         };
-        this.touches_other_piece_bottom = function(){
-            for(let i = 0; i < field.pieces.length; i += 1){
+        this.touches_other_piece_bottom = function () {
+            for (let i = 0; i < field.pieces.length; i += 1) {
                 let current_piece = field.pieces[i];
-                
+
             }
         }
-        this.touches_bottom = function(){
+        this.touches_bottom = function () {
             let touches_bottom = false;
-            for (let i = 0; i < this.blocks.length; i += 1){
+            for (let i = 0; i < this.blocks.length; i += 1) {
                 let item = this.blocks[i];
                 let temp = item.touches_bottom();
-                if (temp === true){
+                if (temp === true) {
                     touches_bottom = true;
                     break;
                 }
@@ -201,28 +308,28 @@ class game_piece {
         }
         this.move_down = function () {
             let touches_bottom = this.touches_bottom();
-            if (touches_bottom === false){
+            if (touches_bottom === false) {
                 this.blocks.forEach(block => {
                     block.move_down();
                 });
                 touches_bottom = this.touches_bottom();
-                if(touches_bottom === true){
+                if (touches_bottom === true) {
                     field.deactivate_piece();
                 }
             }
-            
+
         }
         this.move_right = function () {
             let touches_right = false;
-            for (let i = 0; i < this.blocks.length; i += 1){
+            for (let i = 0; i < this.blocks.length; i += 1) {
                 let item = this.blocks[i];
                 let temp = item.touches_right();
-                if (temp === true){
+                if (temp === true) {
                     touches_right = true;
                     break;
                 }
             }
-            if (touches_right === false){
+            if (touches_right === false) {
                 this.blocks.forEach(block => {
                     block.move_right();
                 })
@@ -230,15 +337,15 @@ class game_piece {
         }
         this.move_left = function () {
             let touches_left = false;
-            for (let i = 0; i < this.blocks.length; i += 1){
+            for (let i = 0; i < this.blocks.length; i += 1) {
                 let item = this.blocks[i];
                 let temp = item.touches_left();
-                if (temp === true){
+                if (temp === true) {
                     touches_left = true;
                     break;
                 }
             }
-            if (touches_left === false){
+            if (touches_left === false) {
                 this.blocks.forEach(block => {
                     block.move_left();
                 })
@@ -283,40 +390,37 @@ class game_block {
 
         }
         this.touches_right = function () {
-            if(this.right === field.x_blocks * field.block_width){
+            if (this.right === field.x_blocks * field.block_width) {
                 return true;
-            }
-            else{
+            } else {
                 return false;
             }
         }
-        this.touches_left = function(){
-            if(this.left === 0){
+        this.touches_left = function () {
+            if (this.left === 0) {
                 return true;
-            }
-            else{
+            } else {
                 return false;
             }
         }
-        this.touches_bottom = function(){
-            if(this.bottom === field.y_blocks * field.block_height){
+        this.touches_bottom = function () {
+            if (this.bottom === field.y_blocks * field.block_height) {
                 return true;
-            }
-            else{
+            } else {
                 return false;
             }
         }
-        this.touches_other_piece_bottom = function(piece){
+        this.touches_other_piece_bottom = function (piece) {
             let other_piece_blocks = piece.blocks;
-            for (let i = 0; i < other_piece_blocks.length; i += 1){
+            for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
-                if (this.bottom === other_block.top){
+                if (this.bottom === other_block.top) {
                     return true;
                 }
             }
             return false;
         }
-        
+
     }
 }
 
@@ -327,7 +431,7 @@ function reset_input_arr() {
 }
 
 function process_input_on_current_block() {
-    
+
     if (input_arr[0] === 1) {
         field.current_piece.move_left();
     }
@@ -336,6 +440,9 @@ function process_input_on_current_block() {
     }
     if (input_arr[2] === 1) {
         field.current_piece.move_down();
+    }
+    if(input_arr[3] === 1){
+        field.current_piece.rotate_clockwise();
     }
 
 }
@@ -348,7 +455,5 @@ function process_frame() {
 
 
 
-    
+
 }
-
-
