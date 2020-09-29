@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function (ev) {
 
 let canvas, ctx, field, frame_timer, gravity_timer;
 let frame_interval = 16.6;
-let gravity_interval = 800;
+let gravity_interval = 900;
 let block_padding = 1.6;
 // left, right, down, space
 let input_arr = [0, 0, 0, 0];
@@ -226,7 +226,7 @@ class game_field {
 }
 
 
-
+//TODO fix bug where you rotate into out of bounds;
 class game_piece {
     // pattern num from shapes dictionary
     constructor(pattern_num) {
@@ -248,6 +248,14 @@ class game_piece {
                         least_y = block.top;
                     }
                 });
+                while(least_x + this.pattern[0].length * field.block_width > canvas.width){
+                    least_x -= field.block_width;
+                }
+                while(least_y + this.pattern.length * field.block_height > canvas.height){
+                    least_y -= field.block_height;
+                }
+
+                
                 this.start_x = least_x;
                 this.start_y = least_y;
             }
@@ -260,6 +268,7 @@ class game_piece {
                 for (let j = 0; j < row.length; j += 1) {
                     let data = row[j];
                     if (data != 1) {
+                        
                         start_x += field.block_width;
                     } else {
                         let block = new game_block(this.color, start_x, start_y);
@@ -316,6 +325,9 @@ class game_piece {
                 if (touches_bottom === true) {
                     field.deactivate_piece();
                 }
+            }
+            else{
+                field.deactivate_piece();
             }
 
         }
