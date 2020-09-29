@@ -299,10 +299,41 @@ class game_piece {
         };
         this.touches_other_piece_bottom = function () {
             for (let i = 0; i < field.pieces.length; i += 1) {
-                let current_piece = field.pieces[i];
+                let other_piece = field.pieces[i];
+                for (let j = 0; j < this.blocks.length; j += 1){
+                    if(this.blocks[j].touches_other_piece_bottom(other_piece) === true){
+                        return true;
+                    }
+                }
 
             }
+            return false;
         }
+        this.touches_other_piece_right = function(){
+            for (let i = 0; i < field.pieces.length; i += 1) {
+                let other_piece = field.pieces[i];
+                for (let j = 0; j < this.blocks.length; j += 1){
+                    if(this.blocks[j].touches_other_piece_right(other_piece) === true){
+                        return true;
+                    }
+                }
+
+            }
+            return false;
+        }
+        this.touches_other_piece_left = function(){
+            for (let i = 0; i < field.pieces.length; i += 1) {
+                let other_piece = field.pieces[i];
+                for (let j = 0; j < this.blocks.length; j += 1){
+                    if(this.blocks[j].touches_other_piece_left(other_piece) === true){
+                        return true;
+                    }
+                }
+
+            }
+            return false;
+        }
+    
         this.touches_bottom = function () {
             let touches_bottom = false;
             for (let i = 0; i < this.blocks.length; i += 1) {
@@ -317,12 +348,14 @@ class game_piece {
         }
         this.move_down = function () {
             let touches_bottom = this.touches_bottom();
-            if (touches_bottom === false) {
+            let touches_other_piece_bottom = this.touches_other_piece_bottom();
+            if (touches_bottom === false && touches_other_piece_bottom === false) {
                 this.blocks.forEach(block => {
                     block.move_down();
                 });
                 touches_bottom = this.touches_bottom();
-                if (touches_bottom === true) {
+                touches_other_piece_bottom = this.touches_other_piece_bottom();
+                if (touches_bottom === true || touches_other_piece_bottom === true) {
                     field.deactivate_piece();
                 }
             }
@@ -333,6 +366,7 @@ class game_piece {
         }
         this.move_right = function () {
             let touches_right = false;
+            let touches_other_piece_right = this.touches_other_piece_right();
             for (let i = 0; i < this.blocks.length; i += 1) {
                 let item = this.blocks[i];
                 let temp = item.touches_right();
@@ -341,7 +375,8 @@ class game_piece {
                     break;
                 }
             }
-            if (touches_right === false) {
+            if (touches_right === false && touches_other_piece_right === false) {
+
                 this.blocks.forEach(block => {
                     block.move_right();
                 })
@@ -349,6 +384,7 @@ class game_piece {
         }
         this.move_left = function () {
             let touches_left = false;
+            let touches_other_piece_left = this.touches_other_piece_left();
             for (let i = 0; i < this.blocks.length; i += 1) {
                 let item = this.blocks[i];
                 let temp = item.touches_left();
@@ -357,7 +393,7 @@ class game_piece {
                     break;
                 }
             }
-            if (touches_left === false) {
+            if (touches_left === false && touches_other_piece_left === false) {
                 this.blocks.forEach(block => {
                     block.move_left();
                 })
@@ -426,7 +462,27 @@ class game_block {
             let other_piece_blocks = piece.blocks;
             for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
-                if (this.bottom === other_block.top) {
+                if (this.bottom === other_block.top && this.left === other_block.left && this.right === other_block.right) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        this.touches_other_piece_right = function(piece){
+            let other_piece_blocks = piece.blocks;
+            for (let i = 0; i < other_piece_blocks.length; i += 1) {
+                let other_block = other_piece_blocks[i];
+                if (this.right === other_block.left && this.top === other_block.top && this.bottom === other_block.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        this.touches_other_piece_left = function(piece){
+            let other_piece_blocks = piece.blocks;
+            for (let i = 0; i < other_piece_blocks.length; i += 1) {
+                let other_block = other_piece_blocks[i];
+                if (this.left === other_block.right && this.top === other_block.top && this.bottom === other_block.bottom) {
                     return true;
                 }
             }
