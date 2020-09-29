@@ -226,7 +226,7 @@ class game_field {
 }
 
 
-//TODO fix bug where you rotate into out of bounds;
+
 class game_piece {
     // pattern num from shapes dictionary
     constructor(pattern_num) {
@@ -280,15 +280,82 @@ class game_piece {
                 start_x = this.start_x;
                 start_y += field.block_height;
             }
-            this.start_y = start_y;
+            //this.start_y = start_y;
+        }
+        this.initialize_pattern_test = function(pattern){
+            let imaginary_blocks = [];
+            let start_x = this.start_x;
+            let start_y = this.start_y;
+            if (this.blocks.length != 0 ){
+                let least_x = Infinity;
+                let least_y = Infinity;
+                this.blocks.forEach(block => {
+                    if(block.left < least_x){
+                        least_x = block.left;
+                    }
+                    if(block.top < least_y){
+                        least_y = block.top;
+                    }
+                });
+                while(least_x + pattern[0].length * field.block_width > canvas.width){
+                    least_x -= field.block_width;
+                }
+                while(least_y + pattern.length * field.block_height > canvas.height){
+                    least_y -= field.block_height;
+                }
+
+                
+                start_x = least_x;
+                start_y = least_y;
+            }
+            
+            
+            for (let i = 0; i < pattern.length; i += 1) {
+                
+                let row = pattern[i];
+                for (let j = 0; j < row.length; j += 1) {
+                    let data = row[j];
+                    if (data != 1) {
+                        
+                        start_x += field.block_width;
+                    } else {
+                        let block = new game_block(this.color, start_x, start_y);
+                        imaginary_blocks.push(block);
+                        start_x += field.block_width;
+                    }
+                    
+                }
+                start_x = this.start_x;
+                start_y += field.block_height;
+            }
+            return imaginary_blocks;
+            
         }
         this.rotate_clockwise = function(){
             let new_pattern = rotate_array_clockwise(this.pattern);
             
+            let imaginary_blocks = this.initialize_pattern_test(new_pattern);
+            let other_pieces = field.pieces;
+            let inside_of_another = false;
+            for (let i = 0; i < other_pieces.length; i += 1){
+                let other_piece = other_pieces[i];
+                for (let j = 0; j < imaginary_blocks.length; j += 1){
+                    let cur_block = imaginary_blocks[j];
+                    if (cur_block.inside_of_another_piece(other_piece) === true){
+                        inside_of_another = true;
+                        break;
+                    }
+                }
+                if(inside_of_another === true){
+                    break;
+                }
+            }
+            if(inside_of_another === false){
+                this.pattern = new_pattern;
             
-            this.pattern = new_pattern;
+                this.initialize_pattern();
+            }
             
-            this.initialize_pattern();
             
         }
         this.initialize_pattern();
@@ -483,6 +550,16 @@ class game_block {
             for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
                 if (this.left === other_block.right && this.top === other_block.top && this.bottom === other_block.bottom) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        this.inside_of_another_piece = function(piece){
+            let other_piece_blocks = piece.blocks;
+            for (let i = 0; i < other_piece_blocks.length; i += 1) {
+                let other_block = other_piece_blocks[i];
+                if(this.top === other_block.top && this.left === other_block.left && this.right === other_block.right && this.bottom === other_block.bottom){
                     return true;
                 }
             }
