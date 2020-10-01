@@ -41,26 +41,26 @@ let shapes = {
         [1, 1]
     ],
     3: [
-        [1,1,0],
-        [0,1,1]
+        [1, 1, 0],
+        [0, 1, 1]
     ],
-    4:[
-        [0,1,0],
-        [1,1,1]
+    4: [
+        [0, 1, 0],
+        [1, 1, 1]
     ],
-    5:[
-        [0,1],
-        [0,1],
-        [0,1],
-        [1,1]
+    5: [
+        [0, 1],
+        [0, 1],
+        [0, 1],
+        [1, 1]
     ]
 }
 let shape_color = {
-    1:"blue",
-    2:"yellow",
-    3:"green",
-    4:"red",
-    5:"purple"
+    1: "blue",
+    2: "yellow",
+    3: "green",
+    4: "red",
+    5: "purple"
 }
 
 //gives random integer between min(inclusive) and max(inclusive)
@@ -107,11 +107,11 @@ function init() {
         process_frame()
     }, frame_interval);
     bind_input();
-    
+
     gravity_timer = setInterval(function () {
         field.current_piece.move_down();
     }, gravity_interval);
-    
+
     field.generate_pieces_queue();
     field.generate_new_current_piece();
     field.draw();
@@ -156,7 +156,7 @@ function bind_input() {
 
 }
 
-// game_field class
+// TODO fix bug, need to move down blocks only that are above the horizontal line;
 class game_field {
     //width in blocks and height in block
     constructor(width, height) {
@@ -168,16 +168,89 @@ class game_field {
         this.pieces = [];
         this.current_piece;
         this.pieces_queue = [];
+        this.pause = function () {
+            clearInterval(gravity_timer);
+        }
+        this.resume = function () {
+            gravity_timer = setInterval(function () {
+                field.current_piece.move_down();
+            }, gravity_interval);
+        }
         this.generate_pieces_queue = function () {
-            while(this.pieces_queue.length < 3){
+            while (this.pieces_queue.length < 3) {
 
-            
+
                 let num = get_random_int(1, 5);
-                while(this.pieces_queue.includes(num) === true){
+                while (this.pieces_queue.includes(num) === true) {
                     num = get_random_int(1, 5);
                 }
                 this.pieces_queue.push(num);
             }
+        }
+        this.clear_empty_pieces = function (pieces) {
+            let indexes_to_deletes = [];
+            for (let i = 0; i < pieces.length; i += 1) {
+                if (pieces[i].blocks.length === 0) {
+                    indexes_to_deletes.push(i);
+                }
+            }
+            let temp = 0;
+            if (indexes_to_deletes.length != 0) {
+                for (let i = 0; i < indexes_to_deletes.length; i += 1) {
+                    pieces.splice(indexes_to_deletes[i] - temp, 1);
+                    temp -= 1;
+                }
+            }
+            return pieces;
+        }
+        this.clear_horizontal_lines = function () {
+            let pieces = this.pieces;
+            let times_cleared = 0;
+                
+            for (let i = this.y_blocks * this.block_height; i >= 0; i -= this.block_height) {
+                let horizontal_block_count = 0;
+                
+                let pieces_indecis = [];
+                let block_indecis = [];
+                for (let j = 0; j < pieces.length; j += 1) {
+                    let scoped_piece = pieces[j];
+                    for (let k = 0; k < scoped_piece.blocks.length; k += 1) {
+                        let scoped_block = scoped_piece.blocks[k];
+                        if (scoped_block.bottom === i) {
+                            horizontal_block_count += 1;
+                            pieces_indecis.push(j);
+                            block_indecis.push(k);
+                        }
+                    }
+                }
+                if (horizontal_block_count === this.x_blocks) {
+                    
+                    times_cleared += 1;
+                    for (let j = 0; j < pieces_indecis.length; j += 1) {
+                        console.log(pieces_indecis, block_indecis);
+                        pieces[pieces_indecis[j]].delete_block(block_indecis[j]);
+                        for (let k = 0; k < pieces_indecis.length; k += 1) {
+                            if (pieces_indecis[k] === pieces_indecis[j]) {
+                                
+                                block_indecis[k] -= 1;
+                                
+                            }
+                        }
+                    }
+                    
+                }
+                
+                
+            }
+            
+            //TODO drop down blocks if they dont touch bottom.
+             
+            
+
+            
+
+
+            this.pieces = pieces;
         }
         this.generate_new_current_piece = function () {
             let num = this.pieces_queue[0];
@@ -235,27 +308,27 @@ class game_piece {
         this.color = colors[shape_color[pattern_num]];
         this.start_x = 0;
         this.start_y = 0;
-        
-        this.initialize_pattern = function(){
-            if (this.blocks.length != 0 ){
+
+        this.initialize_pattern = function () {
+            if (this.blocks.length != 0) {
                 let least_x = Infinity;
                 let least_y = Infinity;
                 this.blocks.forEach(block => {
-                    if(block.left < least_x){
+                    if (block.left < least_x) {
                         least_x = block.left;
                     }
-                    if(block.top < least_y){
+                    if (block.top < least_y) {
                         least_y = block.top;
                     }
                 });
-                while(least_x + this.pattern[0].length * field.block_width > canvas.width){
+                while (least_x + this.pattern[0].length * field.block_width > canvas.width) {
                     least_x -= field.block_width;
                 }
-                while(least_y + this.pattern.length * field.block_height > canvas.height){
+                while (least_y + this.pattern.length * field.block_height > canvas.height) {
                     least_y -= field.block_height;
                 }
 
-                
+
                 this.start_x = least_x;
                 this.start_y = least_y;
             }
@@ -263,100 +336,103 @@ class game_piece {
             let start_x = this.start_x;
             let start_y = this.start_y;
             for (let i = 0; i < this.pattern.length; i += 1) {
-                
+
                 let row = this.pattern[i];
                 for (let j = 0; j < row.length; j += 1) {
                     let data = row[j];
                     if (data != 1) {
-                        
+
                         start_x += field.block_width;
                     } else {
                         let block = new game_block(this.color, start_x, start_y);
                         this.blocks.push(block);
                         start_x += field.block_width;
                     }
-                    
+
                 }
                 start_x = this.start_x;
                 start_y += field.block_height;
             }
             //this.start_y = start_y;
         }
-        this.initialize_pattern_test = function(pattern){
+        this.initialize_pattern_test = function (pattern) {
             let imaginary_blocks = [];
             let start_x = this.start_x;
             let start_y = this.start_y;
-            if (this.blocks.length != 0 ){
+            if (this.blocks.length != 0) {
                 let least_x = Infinity;
                 let least_y = Infinity;
                 this.blocks.forEach(block => {
-                    if(block.left < least_x){
+                    if (block.left < least_x) {
                         least_x = block.left;
                     }
-                    if(block.top < least_y){
+                    if (block.top < least_y) {
                         least_y = block.top;
                     }
                 });
-                while(least_x + pattern[0].length * field.block_width > canvas.width){
+                while (least_x + pattern[0].length * field.block_width > canvas.width) {
                     least_x -= field.block_width;
                 }
-                while(least_y + pattern.length * field.block_height > canvas.height){
+                while (least_y + pattern.length * field.block_height > canvas.height) {
                     least_y -= field.block_height;
                 }
 
-                
+
                 start_x = least_x;
                 start_y = least_y;
             }
-            
-            
+
+
             for (let i = 0; i < pattern.length; i += 1) {
-                
+
                 let row = pattern[i];
                 for (let j = 0; j < row.length; j += 1) {
                     let data = row[j];
                     if (data != 1) {
-                        
+
                         start_x += field.block_width;
                     } else {
                         let block = new game_block(this.color, start_x, start_y);
                         imaginary_blocks.push(block);
                         start_x += field.block_width;
                     }
-                    
+
                 }
                 start_x = this.start_x;
                 start_y += field.block_height;
             }
             return imaginary_blocks;
-            
+
         }
-        this.rotate_clockwise = function(){
+        this.delete_block = function (index) {
+            this.blocks.splice(index, 1);
+        }
+        this.rotate_clockwise = function () {
             let new_pattern = rotate_array_clockwise(this.pattern);
-            
+
             let imaginary_blocks = this.initialize_pattern_test(new_pattern);
             let other_pieces = field.pieces;
             let inside_of_another = false;
-            for (let i = 0; i < other_pieces.length; i += 1){
+            for (let i = 0; i < other_pieces.length; i += 1) {
                 let other_piece = other_pieces[i];
-                for (let j = 0; j < imaginary_blocks.length; j += 1){
+                for (let j = 0; j < imaginary_blocks.length; j += 1) {
                     let cur_block = imaginary_blocks[j];
-                    if (cur_block.inside_of_another_piece(other_piece) === true){
+                    if (cur_block.inside_of_another_piece(other_piece) === true) {
                         inside_of_another = true;
                         break;
                     }
                 }
-                if(inside_of_another === true){
+                if (inside_of_another === true) {
                     break;
                 }
             }
-            if(inside_of_another === false){
+            if (inside_of_another === false) {
                 this.pattern = new_pattern;
-            
+
                 this.initialize_pattern();
             }
-            
-            
+
+
         }
         this.initialize_pattern();
         this.draw = function () {
@@ -367,8 +443,8 @@ class game_piece {
         this.touches_other_piece_bottom = function () {
             for (let i = 0; i < field.pieces.length; i += 1) {
                 let other_piece = field.pieces[i];
-                for (let j = 0; j < this.blocks.length; j += 1){
-                    if(this.blocks[j].touches_other_piece_bottom(other_piece) === true){
+                for (let j = 0; j < this.blocks.length; j += 1) {
+                    if (this.blocks[j].touches_other_piece_bottom(other_piece) === true) {
                         return true;
                     }
                 }
@@ -376,11 +452,11 @@ class game_piece {
             }
             return false;
         }
-        this.touches_other_piece_right = function(){
+        this.touches_other_piece_right = function () {
             for (let i = 0; i < field.pieces.length; i += 1) {
                 let other_piece = field.pieces[i];
-                for (let j = 0; j < this.blocks.length; j += 1){
-                    if(this.blocks[j].touches_other_piece_right(other_piece) === true){
+                for (let j = 0; j < this.blocks.length; j += 1) {
+                    if (this.blocks[j].touches_other_piece_right(other_piece) === true) {
                         return true;
                     }
                 }
@@ -388,11 +464,11 @@ class game_piece {
             }
             return false;
         }
-        this.touches_other_piece_left = function(){
+        this.touches_other_piece_left = function () {
             for (let i = 0; i < field.pieces.length; i += 1) {
                 let other_piece = field.pieces[i];
-                for (let j = 0; j < this.blocks.length; j += 1){
-                    if(this.blocks[j].touches_other_piece_left(other_piece) === true){
+                for (let j = 0; j < this.blocks.length; j += 1) {
+                    if (this.blocks[j].touches_other_piece_left(other_piece) === true) {
                         return true;
                     }
                 }
@@ -400,7 +476,7 @@ class game_piece {
             }
             return false;
         }
-    
+
         this.touches_bottom = function () {
             let touches_bottom = false;
             for (let i = 0; i < this.blocks.length; i += 1) {
@@ -425,8 +501,7 @@ class game_piece {
                 if (touches_bottom === true || touches_other_piece_bottom === true) {
                     field.deactivate_piece();
                 }
-            }
-            else{
+            } else if (touches_bottom === false || touches_other_piece_bottom === false) {
                 field.deactivate_piece();
             }
 
@@ -466,6 +541,7 @@ class game_piece {
                 })
             }
         }
+        
 
     }
 }
@@ -535,7 +611,7 @@ class game_block {
             }
             return false;
         }
-        this.touches_other_piece_right = function(piece){
+        this.touches_other_piece_right = function (piece) {
             let other_piece_blocks = piece.blocks;
             for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
@@ -545,7 +621,7 @@ class game_block {
             }
             return false;
         }
-        this.touches_other_piece_left = function(piece){
+        this.touches_other_piece_left = function (piece) {
             let other_piece_blocks = piece.blocks;
             for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
@@ -555,11 +631,11 @@ class game_block {
             }
             return false;
         }
-        this.inside_of_another_piece = function(piece){
+        this.inside_of_another_piece = function (piece) {
             let other_piece_blocks = piece.blocks;
             for (let i = 0; i < other_piece_blocks.length; i += 1) {
                 let other_block = other_piece_blocks[i];
-                if(this.top === other_block.top && this.left === other_block.left && this.right === other_block.right && this.bottom === other_block.bottom){
+                if (this.top === other_block.top && this.left === other_block.left && this.right === other_block.right && this.bottom === other_block.bottom) {
                     return true;
                 }
             }
@@ -586,7 +662,7 @@ function process_input_on_current_block() {
     if (input_arr[2] === 1) {
         field.current_piece.move_down();
     }
-    if(input_arr[3] === 1){
+    if (input_arr[3] === 1) {
         field.current_piece.rotate_clockwise();
     }
 
