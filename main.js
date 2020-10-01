@@ -206,42 +206,65 @@ class game_field {
         this.clear_horizontal_lines = function () {
             let pieces = this.pieces;
             let times_cleared = 0;
-                
-            for (let i = this.y_blocks * this.block_height; i >= 0; i -= this.block_height) {
-                let horizontal_block_count = 0;
-                
-                let pieces_indecis = [];
-                let block_indecis = [];
-                for (let j = 0; j < pieces.length; j += 1) {
-                    let scoped_piece = pieces[j];
-                    for (let k = 0; k < scoped_piece.blocks.length; k += 1) {
-                        let scoped_block = scoped_piece.blocks[k];
-                        if (scoped_block.bottom === i) {
-                            horizontal_block_count += 1;
-                            pieces_indecis.push(j);
-                            block_indecis.push(k);
-                        }
-                    }
-                }
-                if (horizontal_block_count === this.x_blocks) {
-                    
-                    times_cleared += 1;
-                    for (let j = 0; j < pieces_indecis.length; j += 1) {
-                        console.log(pieces_indecis, block_indecis);
-                        pieces[pieces_indecis[j]].delete_block(block_indecis[j]);
-                        for (let k = 0; k < pieces_indecis.length; k += 1) {
-                            if (pieces_indecis[k] === pieces_indecis[j]) {
-                                
-                                block_indecis[k] -= 1;
-                                
+            let re_run_loop = false;
+            do{
+
+                let some_found = false;
+                for (let i = this.y_blocks * this.block_height; i >= 0; i -= this.block_height) {
+                    let horizontal_block_count = 0;
+                    let pieces_above_indecis = [];
+                    let blocks_above_indecis = [];
+                    let pieces_indecis = [];
+                    let block_indecis = [];
+                    for (let j = 0; j < pieces.length; j += 1) {
+                        let scoped_piece = pieces[j];
+                        for (let k = 0; k < scoped_piece.blocks.length; k += 1) {
+                            let scoped_block = scoped_piece.blocks[k];
+                            if (scoped_block.bottom === i) {
+                                horizontal_block_count += 1;
+                                pieces_indecis.push(j);
+                                block_indecis.push(k);
+                            }
+                            else if(scoped_block.bottom < i){
+                                pieces_above_indecis.push(j);
+                                blocks_above_indecis.push(k);
                             }
                         }
                     }
+                    if (horizontal_block_count === this.x_blocks) {
+                        
+                        times_cleared += 1;
+                        for (let j = 0; j < pieces_indecis.length; j += 1) {
+                            console.log(pieces_indecis, block_indecis);
+                            pieces[pieces_indecis[j]].delete_block(block_indecis[j]);
+                            for (let k = 0; k < pieces_indecis.length; k += 1) {
+                                if (pieces_indecis[k] === pieces_indecis[j]) {
+                                    
+                                    block_indecis[k] -= 1;
+                                    
+                                }
+                            }
+                        }
+                        for(let i = 0; i < pieces_above_indecis.length; i += 1){
+                            
+                            pieces[pieces_above_indecis[i]].blocks[blocks_above_indecis[i]].top += this.block_height;
+                            pieces[pieces_above_indecis[i]].blocks[blocks_above_indecis[i]].bottom += this.block_height;
+                            
+
+                            
+                           
+                            
+                        }
+                        some_found = true;
+                        break;
+                        
+                    }
+                    
                     
                 }
-                
-                
+                re_run_loop = some_found;
             }
+            while(re_run_loop === true)
             
             //TODO drop down blocks if they dont touch bottom.
              
@@ -440,7 +463,7 @@ class game_piece {
                 block.draw();
             })
         };
-        this.touches_other_piece_bottom = function () {
+        this.touches_other_piece_bottom = function (pieces) {
             for (let i = 0; i < field.pieces.length; i += 1) {
                 let other_piece = field.pieces[i];
                 for (let j = 0; j < this.blocks.length; j += 1) {
@@ -491,13 +514,13 @@ class game_piece {
         }
         this.move_down = function () {
             let touches_bottom = this.touches_bottom();
-            let touches_other_piece_bottom = this.touches_other_piece_bottom();
+            let touches_other_piece_bottom = this.touches_other_piece_bottom(field.pieces);
             if (touches_bottom === false && touches_other_piece_bottom === false) {
                 this.blocks.forEach(block => {
                     block.move_down();
                 });
                 touches_bottom = this.touches_bottom();
-                touches_other_piece_bottom = this.touches_other_piece_bottom();
+                touches_other_piece_bottom = this.touches_other_piece_bottom(field.pieces);
                 if (touches_bottom === true || touches_other_piece_bottom === true) {
                     field.deactivate_piece();
                 }
