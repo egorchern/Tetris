@@ -207,7 +207,7 @@ class game_field {
             let pieces = this.pieces;
             let times_cleared = 0;
             let re_run_loop = false;
-            do{
+            do {
 
                 let some_found = false;
                 for (let i = this.y_blocks * this.block_height; i >= 0; i -= this.block_height) {
@@ -224,53 +224,75 @@ class game_field {
                                 horizontal_block_count += 1;
                                 pieces_indecis.push(j);
                                 block_indecis.push(k);
-                            }
-                            else if(scoped_block.bottom < i){
+                            } else if (scoped_block.bottom < i) {
                                 pieces_above_indecis.push(j);
                                 blocks_above_indecis.push(k);
                             }
                         }
                     }
                     if (horizontal_block_count === this.x_blocks) {
-                        
+
                         times_cleared += 1;
                         for (let j = 0; j < pieces_indecis.length; j += 1) {
                             console.log(pieces_indecis, block_indecis);
                             pieces[pieces_indecis[j]].delete_block(block_indecis[j]);
                             for (let k = 0; k < pieces_indecis.length; k += 1) {
                                 if (pieces_indecis[k] === pieces_indecis[j]) {
-                                    
+
                                     block_indecis[k] -= 1;
-                                    
+
                                 }
                             }
                         }
-                        for(let i = 0; i < pieces_above_indecis.length; i += 1){
+                        
+                        for (let j = 0; j < pieces_above_indecis.length; j += 1) {
                             
-                            pieces[pieces_above_indecis[i]].blocks[blocks_above_indecis[i]].top += this.block_height;
-                            pieces[pieces_above_indecis[i]].blocks[blocks_above_indecis[i]].bottom += this.block_height;
                             
-
+                            pieces[pieces_above_indecis[j]].blocks[blocks_above_indecis[j]].top += this.block_height;
+                            pieces[pieces_above_indecis[j]].blocks[blocks_above_indecis[j]].bottom += this.block_height;
                             
                            
                             
+                            
+
+
+
                         }
+                        let run_again;
+                        do{
+                            run_again = false;
+                            for(let j = 0; j < pieces_above_indecis.length; j += 1){
+                                let touches_bottom = pieces[pieces_above_indecis[j]].touches_bottom();
+                                let touches_other_piece_bottom = pieces[pieces_above_indecis[j]].touches_other_piece_bottom(pieces, pieces_above_indecis[j]);
+                                
+                                if(touches_bottom === false && touches_other_piece_bottom === false){
+                                    run_again = true;
+                                    
+                                    pieces[pieces_above_indecis[j]].blocks.forEach(block => {
+                                        block.move_down();
+                                    })
+                                    break;
+                                }
+                            }
+                        }
+                        while(run_again === true);
+
                         some_found = true;
                         break;
-                        
+
                     }
-                    
-                    
+
+
                 }
                 re_run_loop = some_found;
             }
-            while(re_run_loop === true)
-            
-            //TODO drop down blocks if they dont touch bottom.
-             
-            
+            while (re_run_loop === true)
 
             
+
+
+
+
 
 
             this.pieces = pieces;
@@ -463,11 +485,15 @@ class game_piece {
                 block.draw();
             })
         };
-        this.touches_other_piece_bottom = function (pieces) {
-            for (let i = 0; i < field.pieces.length; i += 1) {
-                let other_piece = field.pieces[i];
+        this.touches_other_piece_bottom = function (pieces, excluded = -1) {
+            for (let i = 0; i < pieces.length; i += 1) {
+                if(excluded === i){
+                    continue;
+                }
+                let other_piece = pieces[i];
                 for (let j = 0; j < this.blocks.length; j += 1) {
                     if (this.blocks[j].touches_other_piece_bottom(other_piece) === true) {
+                        console.log(other_piece);
                         return true;
                     }
                 }
@@ -564,7 +590,7 @@ class game_piece {
                 })
             }
         }
-        
+
 
     }
 }
