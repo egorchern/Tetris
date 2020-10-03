@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function (ev) {
     init();
 });
 
-let canvas, ctx, field, frame_timer, gravity_timer;
+let canvas, ctx, field, frame_timer, gravity_timer, score;
 let frame_interval = 16.6;
 let gravity_interval = 900;
 let block_padding = 1.6;
@@ -188,19 +188,18 @@ class game_field {
             }
         }
         this.clear_empty_pieces = function (pieces) {
-            let indexes_to_deletes = [];
-            for (let i = 0; i < pieces.length; i += 1) {
-                if (pieces[i].blocks.length === 0) {
-                    indexes_to_deletes.push(i);
+            let some_deleted;
+            do{
+                some_deleted = false;
+                for(let i = 0; i < pieces.length; i += 1){
+                    if(pieces[i].blocks.length === 0){
+                        pieces.splice(i, 1);
+                        some_deleted = true;
+                        break;
+                    }
                 }
             }
-            let temp = 0;
-            if (indexes_to_deletes.length != 0) {
-                for (let i = 0; i < indexes_to_deletes.length; i += 1) {
-                    pieces.splice(indexes_to_deletes[i] - temp, 1);
-                    temp -= 1;
-                }
-            }
+            while(some_deleted === true)
             return pieces;
         }
         this.clear_horizontal_lines = function () {
@@ -294,7 +293,8 @@ class game_field {
 
 
 
-
+            score += times_cleared;
+            pieces = this.clear_empty_pieces(pieces);
             this.pieces = pieces;
         }
         this.generate_new_current_piece = function () {
@@ -306,7 +306,7 @@ class game_field {
 
             this.pieces.push(this.current_piece);
             this.generate_pieces_queue();
-
+            this.clear_horizontal_lines();
             this.generate_new_current_piece();
 
         }
