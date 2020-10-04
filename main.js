@@ -1,11 +1,21 @@
 "use strict";
 
+
+/*
+TODO
+LOSE CONDITIONS
+MOBILE COMPATIBILITY
+HOLD PIECE FUNCTIONALITY
+*/
+
+
 // 10 x 20
 document.addEventListener("DOMContentLoaded", function (ev) {
     init();
 });
 
-let canvas, ctx, field, frame_timer, gravity_timer, score;
+let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
+
 let frame_interval = 16.6;
 let gravity_interval = 900;
 let block_padding = 1.6;
@@ -98,11 +108,14 @@ function rotate_array_clockwise(arr) {
 
 
 function init() {
-
+    
+    second_canvas = document.querySelector("#secondary_canvas");
+    second_ctx = second_canvas.getContext("2d");
+    
     canvas = document.querySelector("#main_canvas");
     ctx = canvas.getContext("2d");
     field = new game_field(10, 20);
-
+    
     frame_timer = setInterval(function () {
         process_frame()
     }, frame_interval);
@@ -113,8 +126,12 @@ function init() {
     }, gravity_interval);
 
     field.generate_pieces_queue();
+    
     field.generate_new_current_piece();
+    menu = new side_menu();
     field.draw();
+    
+    menu.draw();
 
 
 }
@@ -155,8 +172,32 @@ function bind_input() {
     */
 
 }
+class side_menu{
+    constructor(){
+        this.score = 0;
+        this.pieces_x_offset = 40;
+        this.pieces_y_offset = 20;
+        this.increase_score_by = function (amount){
+            this.score += amount;
+            
+        }
+        this.draw = function (){
+            second_ctx.restore();
+            second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
+            second_ctx.font = "35px serif";
+            second_ctx.fillText(`Score: ${this.score}`, 25, second_canvas.height * 0.9, 125);
+            let y_counter = 0;
+            field.pieces_queue.forEach(num => {
+                let piece = new game_piece(num, this.pieces_x_offset, y_counter, true);
+                let height = piece.get_vertical_height();
+                y_counter += height + this.pieces_y_offset;
+                piece.draw();
 
-// TODO fix bug, need to move down blocks only that are above the horizontal line;
+            })
+        }
+    }
+}
+
 class game_field {
     //width in blocks and height in block
     constructor(width, height) {
@@ -177,14 +218,15 @@ class game_field {
             }, gravity_interval);
         }
         this.generate_pieces_queue = function () {
-            while (this.pieces_queue.length < 3) {
+            while (this.pieces_queue.length < 4) {
 
 
-                let num = get_random_int(1, 5);
+                let num = get_random_int(1, Object.keys(shapes).length);
                 while (this.pieces_queue.includes(num) === true) {
-                    num = get_random_int(1, 5);
+                    num = get_random_int(1, Object.keys(shapes).length);
                 }
                 this.pieces_queue.push(num);
+                
             }
         }
         this.clear_empty_pieces = function (pieces) {
@@ -293,13 +335,15 @@ class game_field {
 
 
 
-            score += times_cleared;
+            menu.increase_score_by(times_cleared);
+            
             pieces = this.clear_empty_pieces(pieces);
             this.pieces = pieces;
         }
         this.generate_new_current_piece = function () {
             let num = this.pieces_queue[0];
             this.pieces_queue.splice(0, 1);
+            
             this.current_piece = new game_piece(num);
         }
         this.deactivate_piece = function () {
@@ -307,6 +351,7 @@ class game_field {
             this.pieces.push(this.current_piece);
             this.generate_pieces_queue();
             this.clear_horizontal_lines();
+            menu.draw();
             this.generate_new_current_piece();
 
         }
@@ -347,12 +392,12 @@ class game_field {
 
 class game_piece {
     // pattern num from shapes dictionary
-    constructor(pattern_num) {
+    constructor(pattern_num, x = 0, y = 0, secondary = false) {
         this.blocks = [];
         this.pattern = shapes[pattern_num];
         this.color = colors[shape_color[pattern_num]];
-        this.start_x = 0;
-        this.start_y = 0;
+        this.start_x = x;
+        this.start_y = y;
 
         this.initialize_pattern = function () {
             if (this.blocks.length != 0) {
@@ -389,7 +434,7 @@ class game_piece {
 
                         start_x += field.block_width;
                     } else {
-                        let block = new game_block(this.color, start_x, start_y);
+                        let block = new game_block(this.color, start_x, start_y, secondary);
                         this.blocks.push(block);
                         start_x += field.block_width;
                     }
@@ -448,6 +493,20 @@ class game_piece {
             }
             return imaginary_blocks;
 
+        }
+        this.get_vertical_height = function(){
+            let smallest_top = Infinity;
+            let biggest_bottom = -Infinity;
+            this.blocks.forEach(block => {
+                if(block.top < smallest_top){
+                    smallest_top = block.top;
+
+                }
+                if(block.bottom > biggest_bottom){
+                    biggest_bottom = block.bottom;
+                }
+            })
+            return biggest_bottom - smallest_top;
         }
         this.delete_block = function (index) {
             this.blocks.splice(index, 1);
@@ -596,7 +655,7 @@ class game_piece {
 }
 
 class game_block {
-    constructor(fill_color, x, y) {
+    constructor(fill_color, x, y, secondary = false) {
         this.fill_color = fill_color;
         this.top = y;
         this.left = x;
@@ -604,12 +663,27 @@ class game_block {
         this.bottom = y + field.block_height;
 
         this.draw = function () {
-            ctx.beginPath();
-            ctx.fillStyle = "hsl(0,0%,20%)";
-            ctx.fillRect(this.left, this.top, field.block_width, field.block_height);
-            ctx.clearRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
-            ctx.fillStyle = this.fill_color;
-            ctx.fillRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
+            
+            if(secondary === false){
+                ctx.beginPath();
+                ctx.fillStyle = "hsl(0,0%,20%)";
+                ctx.fillRect(this.left, this.top, field.block_width, field.block_height);
+                ctx.clearRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
+                ctx.fillStyle = this.fill_color;
+                ctx.fillRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
+            }
+            else{
+                second_ctx.save();
+                second_ctx.beginPath();
+                second_ctx.fillStyle = "hsl(0,0%,20%)";
+                second_ctx.fillRect(this.left, this.top, field.block_width, field.block_height);
+                second_ctx.clearRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
+                second_ctx.fillStyle = this.fill_color;
+                second_ctx.fillRect(this.left + block_padding, this.top + block_padding, field.block_width - block_padding * 2, field.block_height - block_padding * 2);
+                second_ctx.restore();
+            }
+            
+            
         }
         this.move_right = function () {
 
