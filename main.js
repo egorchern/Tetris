@@ -185,8 +185,9 @@ class side_menu{
             second_ctx.restore();
             second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
             second_ctx.font = "35px serif";
+            second_ctx.fillText("Next:", 25, 29);
             second_ctx.fillText(`Score: ${this.score}`, 25, second_canvas.height * 0.9, 125);
-            let y_counter = 0;
+            let y_counter = 75;
             field.pieces_queue.forEach(num => {
                 let piece = new game_piece(num, this.pieces_x_offset, y_counter, true);
                 let height = piece.get_vertical_height();
