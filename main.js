@@ -124,14 +124,14 @@ function init() {
     gravity_timer = setInterval(function () {
         field.current_piece.move_down();
     }, gravity_interval);
-
+    menu = new side_menu();
     field.generate_pieces_queue();
     
     field.generate_new_current_piece();
-    menu = new side_menu();
+    
     field.draw();
     
-    menu.draw();
+    //menu.draw();
 
 
 }
@@ -275,7 +275,7 @@ class game_field {
 
                         times_cleared += 1;
                         for (let j = 0; j < pieces_indecis.length; j += 1) {
-                            console.log(pieces_indecis, block_indecis);
+                            
                             pieces[pieces_indecis[j]].delete_block(block_indecis[j]);
                             for (let k = 0; k < pieces_indecis.length; k += 1) {
                                 if (pieces_indecis[k] === pieces_indecis[j]) {
@@ -345,13 +345,14 @@ class game_field {
             this.pieces_queue.splice(0, 1);
             
             this.current_piece = new game_piece(num);
+            menu.draw();
         }
         this.deactivate_piece = function () {
 
             this.pieces.push(this.current_piece);
             this.generate_pieces_queue();
             this.clear_horizontal_lines();
-            menu.draw();
+            //menu.draw();
             this.generate_new_current_piece();
 
         }
@@ -552,7 +553,7 @@ class game_piece {
                 let other_piece = pieces[i];
                 for (let j = 0; j < this.blocks.length; j += 1) {
                     if (this.blocks[j].touches_other_piece_bottom(other_piece) === true) {
-                        console.log(other_piece);
+                        
                         return true;
                     }
                 }
