@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function (ev) {
 let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
 
 let frame_interval = 16.6;
-let gravity_interval = 900;
+let gravity_interval = 750;
 let block_padding = 1.6;
 // left, right, down, space
 let input_arr = [0, 0, 0, 0];
@@ -185,8 +185,8 @@ class side_menu{
             second_ctx.restore();
             second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
             second_ctx.font = "35px serif";
-            second_ctx.fillText("Next:", 25, 29);
-            second_ctx.fillText(`Score: ${this.score}`, 25, second_canvas.height * 0.9, 125);
+            second_ctx.fillText("Next:", 45, 29);
+            second_ctx.fillText(`Score: ${this.score}`, 20, second_canvas.height * 0.9, 125);
             let y_counter = 75;
             field.pieces_queue.forEach(num => {
                 let piece = new game_piece(num, this.pieces_x_offset, y_counter, true);
@@ -195,6 +195,14 @@ class side_menu{
                 piece.draw();
 
             })
+        }
+        this.draw_game_end = function(){
+            second_ctx.restore();
+            second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
+            second_ctx.font = "30px serif";
+            second_ctx.fillText(`Game ended`, 5, 25, 145);
+            second_ctx.font = "30px serif";
+            second_ctx.fillText(`Score: ${this.score}`, 5, 75, 145);
         }
     }
 }
@@ -210,6 +218,27 @@ class game_field {
         this.pieces = [];
         this.current_piece;
         this.pieces_queue = [];
+        this.stop_game = function(){
+            clearInterval(frame_timer);
+            clearInterval(gravity_timer);
+        }
+        this.check_if_game_ended = function(){
+            
+            for(let i = 0; i < this.pieces.length; i += 1){
+                let scoped_piece = this.pieces[i];
+                
+                for(let j = 0; j < scoped_piece.blocks.length; j += 1 ){
+                    let scoped_block = scoped_piece.blocks[j];
+                    console.log(scoped_block);
+                    if(scoped_block.bottom <= 0){
+                        return true;
+                    
+                    }
+                }
+                
+            }
+            return false;
+        }
         this.pause = function () {
             clearInterval(gravity_timer);
         }
@@ -344,17 +373,28 @@ class game_field {
         this.generate_new_current_piece = function () {
             let num = this.pieces_queue[0];
             this.pieces_queue.splice(0, 1);
-            
-            this.current_piece = new game_piece(num);
+            //let width_x = shapes[num][0].length * this.block_width;
+            let start_y = -1 * (shapes[num].length * this.block_height);
+            this.current_piece = new game_piece(num, 0, start_y);
             menu.draw();
         }
         this.deactivate_piece = function () {
 
             this.pieces.push(this.current_piece);
-            this.generate_pieces_queue();
-            this.clear_horizontal_lines();
-            //menu.draw();
-            this.generate_new_current_piece();
+            let game_ended = this.check_if_game_ended();
+            
+            if(game_ended === true){
+                this.stop_game();
+                menu.draw_game_end();
+            }
+            else{
+
+            
+                this.generate_pieces_queue();
+                this.clear_horizontal_lines();
+                //menu.draw();
+                this.generate_new_current_piece();
+            }
 
         }
         this.draw = function () {
@@ -386,6 +426,7 @@ class game_field {
                 piece.draw();
             })
         }
+        
 
     }
 }
