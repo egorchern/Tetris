@@ -3,7 +3,7 @@
 
 /*
 TODO
-LOSE CONDITIONS
+FIX BUG WITH ROTATING INTO PIECES
 MOBILE COMPATIBILITY
 HOLD PIECE FUNCTIONALITY
 */
@@ -19,8 +19,8 @@ let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, m
 let frame_interval = 16.6;
 let gravity_interval = 750;
 let block_padding = 1.6;
-// left, right, down, space
-let input_arr = [0, 0, 0, 0];
+// left, right, down, space, tab
+let input_arr = [0, 0, 0, 0, 0];
 let colors = {
     "green": "hsl(120, 60%, 50%)",
     "blue": "hsl(180, 100%, 65%)",
@@ -152,6 +152,9 @@ function bind_input() {
         if (key === " " || key === "ArrowUp") {
             input_arr[3] = 1;
         }
+        if (key === "Shift") {
+            input_arr[4] = 1;
+        }
     });
     /*
     document.addEventListener("keyup", function (ev) {
@@ -185,9 +188,19 @@ class side_menu{
             second_ctx.restore();
             second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
             second_ctx.font = "35px serif";
-            second_ctx.fillText("Next:", 45, 29);
-            second_ctx.fillText(`Score: ${this.score}`, 20, second_canvas.height * 0.9, 125);
-            let y_counter = 75;
+            second_ctx.fillText("Held:", 40, 35);
+            let y_counter = 55;
+            if(field.held_piece_pattern_num != -1){
+                let piece = new game_piece(field.held_piece_pattern_num, this.pieces_x_offset, y_counter, true);
+                let height = piece.get_vertical_height();
+                y_counter += height + this.pieces_y_offset;
+                piece.draw();
+            }
+            y_counter += 35;
+            second_ctx.fillText("Next:", 40, y_counter);
+            y_counter += 20;
+            second_ctx.fillText(`Score: ${this.score}`, 20, second_canvas.height * 0.95, 125);
+            
             field.pieces_queue.forEach(num => {
                 let piece = new game_piece(num, this.pieces_x_offset, y_counter, true);
                 let height = piece.get_vertical_height();
@@ -217,7 +230,27 @@ class game_field {
         this.gravity = 1;
         this.pieces = [];
         this.current_piece;
+        this.hold_piece_cooldown = 5;
+        this.hold_piece_cooldown_counter = 5;
+        this.held_piece_pattern_num = -1;
         this.pieces_queue = [];
+        this.hold_current_piece = function(){
+            if(this.hold_piece_cooldown_counter >= this.hold_piece_cooldown){
+
+            
+                this.held_piece_pattern_num = this.current_piece.pattern_num;
+                this.generate_new_current_piece();
+                menu.draw()
+            }
+        }
+        this.release_held_piece = function(){
+            let num = this.held_piece_pattern_num;
+            let start_y = -1 * (shapes[num].length * this.block_height);
+            this.current_piece = new game_piece(num, 0, start_y);
+            this.held_piece_pattern_num = -1;
+            this.hold_piece_cooldown_counter = 0;
+            menu.draw();
+        }
         this.stop_game = function(){
             clearInterval(frame_timer);
             clearInterval(gravity_timer);
@@ -389,7 +422,7 @@ class game_field {
             }
             else{
 
-            
+                this.hold_piece_cooldown_counter += 1;
                 this.generate_pieces_queue();
                 this.clear_horizontal_lines();
                 //menu.draw();
@@ -436,6 +469,7 @@ class game_field {
 class game_piece {
     // pattern num from shapes dictionary
     constructor(pattern_num, x = 0, y = 0, secondary = false) {
+        this.pattern_num = pattern_num;
         this.blocks = [];
         this.pattern = shapes[pattern_num];
         this.color = colors[shape_color[pattern_num]];
@@ -830,6 +864,14 @@ function process_input_on_current_block() {
     }
     if (input_arr[3] === 1) {
         field.current_piece.rotate_clockwise();
+    }
+    if (input_arr[4] === 1) {
+        if(field.held_piece_pattern_num === -1){
+            field.hold_current_piece();
+        }
+        else{
+            field.release_held_piece();
+        }
     }
 
 }
