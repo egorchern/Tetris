@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="main.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="logo.PNG">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108190186-5"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-108190186-5');
+    </script>
+
 </head>
 
 <body>
@@ -15,7 +25,18 @@
         <canvas id="main_canvas" width = "300" height = "600"></canvas>
 
         <canvas id="secondary_canvas" width = "150" height="700" style="margin-left:25px"></canvas>
+        <div style="position:absolute; left: 10px; top: 10px; max-width: 3vw; min-width:40px" id="help_icon">
+            <img style="max-width:100%;" src="help_icon.png">
 
+        </div>
+        <div class="modall">
+            <span class="close" onclick="">&times;</span>
+            <div style="display:flex; justify-content: center; align-items: center; flex-direction: column; width:100%; flex-grow:1;overflow: auto;">
+            
+                <div class="modall-content" id="box">
+                </div>
+            </div>
+        </div>
 
     </div>
 </body>

@@ -3,7 +3,7 @@
 
 /*
 TODO
-FIX BUG WITH ROTATING INTO PIECES
+
 MOBILE COMPATIBILITY
 
 */
@@ -11,7 +11,12 @@ MOBILE COMPATIBILITY
 
 // 10 x 20
 document.addEventListener("DOMContentLoaded", function (ev) {
+    
     init();
+    let temp = document.querySelector("#help_icon");
+    temp.addEventListener("click", function(ev){
+        display_info();
+    })
 });
 
 let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
@@ -189,7 +194,7 @@ class side_menu{
             second_ctx.clearRect(0, 0, second_canvas.width, second_canvas.height);
             second_ctx.font = "35px serif";
             second_ctx.fillText("Held:", 40, 35);
-            let y_counter = 55;
+            let y_counter = 65;
             if(field.held_piece_pattern_num != -1){
                 let piece = new game_piece(field.held_piece_pattern_num, this.pieces_x_offset, y_counter, true);
                 let height = piece.get_vertical_height();
@@ -262,7 +267,7 @@ class game_field {
                 
                 for(let j = 0; j < scoped_piece.blocks.length; j += 1 ){
                     let scoped_block = scoped_piece.blocks[j];
-                    console.log(scoped_block);
+                    
                     if(scoped_block.bottom <= 0){
                         return true;
                     
@@ -274,11 +279,15 @@ class game_field {
         }
         this.pause = function () {
             clearInterval(gravity_timer);
+            clearInterval(frame_timer);
         }
         this.resume = function () {
             gravity_timer = setInterval(function () {
                 field.current_piece.move_down();
             }, gravity_interval);
+            frame_timer = setInterval(function () {
+                process_frame()
+            }, frame_interval);
         }
         this.generate_pieces_queue = function () {
             while (this.pieces_queue.length < 4) {
@@ -524,8 +533,8 @@ class game_piece {
         }
         this.initialize_pattern_test = function (pattern) {
             let imaginary_blocks = [];
-            let start_x = this.start_x;
-            let start_y = this.start_y;
+            let start_x;
+            let start_y;
             if (this.blocks.length != 0) {
                 let least_x = Infinity;
                 let least_y = Infinity;
@@ -549,7 +558,7 @@ class game_piece {
                 start_y = least_y;
             }
 
-
+            let st_x = start_x;
             for (let i = 0; i < pattern.length; i += 1) {
 
                 let row = pattern[i];
@@ -565,7 +574,7 @@ class game_piece {
                     }
 
                 }
-                start_x = this.start_x;
+                start_x = st_x;
                 start_y += field.block_height;
             }
             return imaginary_blocks;
@@ -592,13 +601,16 @@ class game_piece {
             let new_pattern = rotate_array_clockwise(this.pattern);
 
             let imaginary_blocks = this.initialize_pattern_test(new_pattern);
+            console.log(this.blocks, imaginary_blocks);
             let other_pieces = field.pieces;
             let inside_of_another = false;
             for (let i = 0; i < other_pieces.length; i += 1) {
                 let other_piece = other_pieces[i];
                 for (let j = 0; j < imaginary_blocks.length; j += 1) {
                     let cur_block = imaginary_blocks[j];
+                    
                     if (cur_block.inside_of_another_piece(other_piece) === true) {
+                        
                         inside_of_another = true;
                         break;
                     }
@@ -886,3 +898,16 @@ function process_frame() {
 
 
 }
+function $(x) {
+    return document.querySelector(x);
+}
+function display_info(){
+    
+    field.pause();
+    $(".modall").style.display = "flex";
+    $(".close").addEventListener("click", function(ev){
+        $(".modall").style.display = "none";
+        field.resume();
+    })
+}
+

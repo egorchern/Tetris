@@ -1,28 +1,101 @@
-html, body{
-    margin:0;
-    padding:0;
-    height:100%;
-    width:100%;
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
 }
-#body_wrapper{
-    width:100%;
-    height:100%;
+
+#body_wrapper {
+    width: 100%;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.horizontal_aligner{
+.horizontal_aligner {
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
 }
-.perfect_aligner{
+
+.perfect_aligner {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
 }
-#main_canvas{
+
+#main_canvas {
     border: 1px solid black;
+}
+
+.modall {
+
+    display: none;
+    position: fixed;
+    flex-direction: column;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.85);
+    /* Black w/ opacity */
+    overflow-x:hidden;
+
+
+    overflow-y: auto;
+
+}
+#box{
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.45rem;
+    padding:12px;
+}
+.modall-content {
+
+    overflow: auto;
+    max-width: 1150px;
+    background-color: white;
+    display: grid;
+    animation-name: zoom;
+    animation-duration: 0.5s;
+}
+
+@keyframes zoom {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.close {
+    /*
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    */
+    display: block;
+    padding-right: 12px;
+    text-align: right;
+
+    color: #f1f1f1;
+    font-size: 40px !important;
+    font-weight: bolder;
+    transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
 }
