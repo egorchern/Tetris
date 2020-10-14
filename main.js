@@ -16,7 +16,10 @@ document.addEventListener("DOMContentLoaded", function (ev) {
     let temp = document.querySelector("#help_icon");
     temp.addEventListener("click", function(ev){
         display_info();
-    })
+    });
+    $(".close").addEventListener("click", function(ev){
+        close_modal();
+    });
 });
 
 let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
@@ -137,7 +140,7 @@ function init() {
     field.draw();
     
     //menu.draw();
-
+    
 
 }
 
@@ -278,10 +281,12 @@ class game_field {
             return false;
         }
         this.pause = function () {
+            console.log("pause call");
             clearInterval(gravity_timer);
             clearInterval(frame_timer);
         }
         this.resume = function () {
+            console.log("resume call")
             gravity_timer = setInterval(function () {
                 field.current_piece.move_down();
             }, gravity_interval);
@@ -901,13 +906,21 @@ function process_frame() {
 function $(x) {
     return document.querySelector(x);
 }
+function close_modal(){
+    $(".modall").style.display = "none";
+    field.resume();
+}
 function display_info(){
     
     field.pause();
     $(".modall").style.display = "flex";
+    /*
+    $(".close").removeEventListener("click", function(ev){
+        close_modal();
+    });
     $(".close").addEventListener("click", function(ev){
-        $(".modall").style.display = "none";
-        field.resume();
-    })
+        close_modal();
+    });
+    */
 }
 

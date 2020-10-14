@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <title>Tetris</title>
     <script src="main.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
     <link rel="stylesheet" href="main.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="logo.PNG">
@@ -16,7 +18,7 @@
 
     gtag('config', 'UA-108190186-5');
     </script>
-
+    
 </head>
 
 <body>
@@ -30,10 +32,25 @@
 
         </div>
         <div class="modall">
-            <span class="close" onclick="">&times;</span>
+            <span class="close" >&times;</span>
             <div style="display:flex; justify-content: center; align-items: center; flex-direction: column; width:100%; flex-grow:1;overflow: auto;">
             
                 <div class="modall-content" id="box">
+                    <p style="font-weight: bolder;">Controls</p>
+                    <p>A - Move current block left</p>
+                    <p>D - Move current block right</p>
+                    <p>S - Move current block down</p>
+                    <p>Space - Rotate current block</p>
+                    <p>Shift - Hold current piece</p>
+                    <p style="font-weight: bolder;">Rules</p>
+                    <p>The aim of the game is to avoid blocks from reaching the top of the game field while getting as high of a score as you can. Horizontal lines that are completely full will dissapear and the score will be incremented by one.</p>
+                    <div class="perfect_aligner" style="margin-bottom: 15px;">
+                        <div style="max-width: 500px;">
+                            <img src="vid.gif" style="max-width:100%;">
+                        </div>
+                        
+                    </div >
+                    
                 </div>
             </div>
         </div>

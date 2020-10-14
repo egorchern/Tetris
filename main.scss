@@ -1,3 +1,10 @@
+@font-face{
+    font-family: "segoe";
+    src: url("Segoe UI.woff") format("woff");
+}
+* {
+    font-family: "segoe";
+}
 html,
 body {
     margin: 0;
@@ -12,7 +19,9 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
+#help_icon{
+    cursor:pointer;
+}
 .horizontal_aligner {
     display: flex;
     flex-direction: column;
@@ -55,12 +64,16 @@ body {
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
     border: 2px solid rgba(0, 0, 0, 0.125);
     border-radius: 0.45rem;
-    padding:12px;
+    padding:16px;
+    font-size: 20px;
+    > p{
+        text-align: center;
+    }
 }
 .modall-content {
 
     overflow: auto;
-    max-width: 1150px;
+    max-width: 700px;
     background-color: white;
     display: grid;
     animation-name: zoom;
