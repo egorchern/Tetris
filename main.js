@@ -13,13 +13,7 @@ MOBILE COMPATIBILITY
 document.addEventListener("DOMContentLoaded", function (ev) {
     
     init();
-    let temp = document.querySelector("#help_icon");
-    temp.addEventListener("click", function(ev){
-        display_info();
-    });
-    $(".close").addEventListener("click", function(ev){
-        close_modal();
-    });
+    
 });
 
 let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
@@ -27,7 +21,7 @@ let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, m
 let frame_interval = 16.6;
 let gravity_interval = 750;
 let block_padding = 1.6;
-// left, right, down, space, tab
+// left - a, right - d, down - s, rotate - space, hold - shift
 let input_arr = [0, 0, 0, 0, 0];
 let colors = {
     "green": "hsl(120, 60%, 50%)",
@@ -116,7 +110,39 @@ function rotate_array_clockwise(arr) {
 
 
 function init() {
-    
+    let temp = document.querySelector("#help_icon");
+    temp.addEventListener("click", function(ev){
+        display_info();
+    });
+    $(".close").addEventListener("click", function(ev){
+        close_modal();
+    });
+    let buttons = document.querySelectorAll(".button_container");
+
+    buttons.forEach(button => {
+        let data = button.dataset.action;
+        let index = 0;
+        console.log(data, button);
+        if(data === "left"){
+            index = 0;
+        }
+        else if(data === "right"){
+            index = 1;
+        }
+        else if(data === "down"){
+            index = 2;
+        }
+        else if(data === "rotate"){
+            index = 3;
+        }
+        else if(data === "hold"){
+            index = 4;
+        }
+
+        button.addEventListener("click", function(ev){
+            input_arr[index] = 1;
+        });
+    })
     second_canvas = document.querySelector("#secondary_canvas");
     second_ctx = second_canvas.getContext("2d");
     

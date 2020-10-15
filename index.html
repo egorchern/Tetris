@@ -23,10 +23,34 @@
 
 <body>
     <div id="body_wrapper" class="perfect_aligner">
-        
-        <canvas id="main_canvas" width = "300" height = "600"></canvas>
+        <div class="horizontal_aligner">
+            <canvas id="main_canvas" width = "300" height = "600"></canvas>
 
-        <canvas id="secondary_canvas" width = "150" height="700" style="margin-left:25px"></canvas>
+            <canvas id="secondary_canvas" width = "150" height="700" style="margin-left:25px"></canvas>
+        </div>
+        <div id="buttons_container" >
+            <div class="button_container" data-action="left">
+                <img src="left.png" style="max-width:100%;">
+
+            </div>
+            <div class="button_container" data-action="right">
+                <img src="right.png" style="max-width:100%;">
+
+            </div>
+            <div class="button_container" data-action="down">
+                <img src="down.png" style="max-width:100%;">
+
+            </div>
+            <div class="button_container" data-action="rotate">
+                <img src="rotate.png" style="max-width:100%;">
+
+            </div>
+            <div class="button_container" data-action="hold">
+                <img src="hold.png" style="max-width:100%;">
+
+            </div>
+        </div>
+        
         <div style="position:absolute; left: 10px; top: 10px; max-width: 3vw; min-width:40px" id="help_icon">
             <img style="max-width:100%;" src="help_icon.png">
 
@@ -42,6 +66,7 @@
                     <p>S - Move current block down</p>
                     <p>Space - Rotate current block</p>
                     <p>Shift - Hold current piece</p>
+                    <p>Or use buttons on the screen</p>
                     <p style="font-weight: bolder;">Rules</p>
                     <p>The aim of the game is to avoid blocks from reaching the top of the game field while getting as high of a score as you can. Horizontal lines that are completely full will dissapear and the score will be incremented by one.</p>
                     <div class="perfect_aligner" style="margin-bottom: 15px;">
