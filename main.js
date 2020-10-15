@@ -4,7 +4,7 @@
 /*
 TODO
 
-MOBILE COMPATIBILITY
+
 
 */
 
