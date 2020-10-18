@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function (ev) {
 
 let canvas, ctx, field, frame_timer, gravity_timer, second_canvas, second_ctx, menu;
 
+
 let frame_interval = 16.6;
 let gravity_interval = 750;
 let block_padding = 1.6;
@@ -110,6 +111,7 @@ function rotate_array_clockwise(arr) {
 
 
 function init() {
+
     let temp = document.querySelector("#help_icon");
     temp.addEventListener("click", function(ev){
         display_info();
@@ -172,6 +174,7 @@ function init() {
 
 
 function bind_input() {
+    
     document.addEventListener("keydown", function (ev) {
         let key = ev.key;
         if (key === "a" || key === "ArrowLeft") {
